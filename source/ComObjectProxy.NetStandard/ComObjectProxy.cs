@@ -4,29 +4,27 @@ using System.Runtime.CompilerServices;
 
 namespace ComObjectProxy.Core
 {
-    public class ComCollectionProxy<TCollection, T> : ComObjectProxy<TCollection> where TCollection : IEnumerable
+    internal class ComCollectionProxy<TCollection, T> : ComObjectProxy<TCollection> where TCollection : IEnumerable
     {
+        private ProxyImpl proxyImpl = new ProxyImpl();
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
             if (targetMethod.Name == nameof(IEnumerable.GetEnumerator) && typeof(T).IsInterface)
             {
-                return GetEnumerator().GetEnumerator();
+                Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} Begin");
+                var result = proxyImpl.GetProxyEnumerable<T>(base.instance).GetEnumerator();
+                Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} End: {targetMethod.ReturnType.FullName}");
+                return result;
             }
 
             return base.Invoke(targetMethod, args);
         }
-
-        IEnumerable<T> GetEnumerator()
-        {
-            foreach (var arg in base.instance)
-            {
-                yield return (T)ComProxyFactory.Create(arg, typeof(T));
-            }
-        }
     }
-    public class ComObjectProxy<T> : DispatchProxy
+
+    internal class ComObjectProxy<T> : DispatchProxy
     {
         protected T instance;
+        private readonly ProxyImpl proxyImpl = new ProxyImpl();
 
         public static T Create(T comObject)
         {
@@ -45,25 +43,8 @@ namespace ComObjectProxy.Core
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
-            if (targetMethod == instance.GetType().GetMethod("GetType"))
-            {
-                return typeof(T);
-            }
-            var (name, flags) = targetMethod switch
-            {
-                { Name.Length: > 0 } when targetMethod.Name.StartsWith("get_") =>
-                    (targetMethod.Name.Substring(4), BindingFlags.GetProperty),
-                { Name.Length: > 0 } when targetMethod.Name.StartsWith("set_") =>
-                    (targetMethod.Name.Substring(4), BindingFlags.SetProperty),
-                { Name.Length: > 0 } when targetMethod.Name.StartsWith("add_") =>
-                    (targetMethod.Name.Substring(4), BindingFlags.InvokeMethod),
-                { Name.Length: > 0 } when targetMethod.Name.StartsWith("remove_") =>
-                    (targetMethod.Name.Substring(7), BindingFlags.InvokeMethod),
-                _ =>
-                    (targetMethod.Name, BindingFlags.InvokeMethod),
-                // _ => throw new NotSupportedException()
-            };
-            var result = instance.GetType().InvokeMember(name, flags, null, instance, args);
+            Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} Begin");
+            object result = proxyImpl.InvokeMember(instance, targetMethod, args);
             if (
                 result is { } &&
                 result.GetType() is { IsCOMObject: true } &&
@@ -72,11 +53,17 @@ namespace ComObjectProxy.Core
                 if (ComProxyFactory.ConverterMap.ContainsKey(targetMethod.ReturnType))
                 {
                     var element = ComProxyFactory.ConverterMap[targetMethod.ReturnType];
-                    return ComProxyFactory.CreateCollection(result, targetMethod.ReturnType, element);
+                    var temp = ComProxyFactory.CreateCollection(result, targetMethod.ReturnType, element);
+                    Console.WriteLine(
+                        $"{typeof(T).Name} call {targetMethod.Name} End: {temp}/{targetMethod.GetType().Name}");
+                    return temp;
                 }
-                return ComProxyFactory.Create(result, targetMethod.ReturnType);
+                var tt = ComProxyFactory.Create(result, targetMethod.ReturnType);
+                Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} End: {tt}/{targetMethod.GetType().Name}");
+                return tt;
             }
-
+            
+            Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} End: {result}/{targetMethod.GetType().Name}");
             return result;
         }
     }

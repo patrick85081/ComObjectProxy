@@ -53,6 +53,16 @@
         <EmbedInteropTypes>True</EmbedInteropTypes>
       </COMReference>
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\source\ComObjectProxy.Core\ComObjectProxy.Core.csproj">
+        <Project>{5f2057f6-a310-4cf2-8e4e-18302602d849}</Project>
+        <Name>ComObjectProxy.Core</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\..\source\ComObjectProxy.NetFx\ComObjectProxy.NetFx.csproj">
+        <Project>{66ee6b68-5717-4d49-bf5e-40f58edf92c2}</Project>
+        <Name>ComObjectProxy.NetFx</Name>
+      </ProjectReference>
+    </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
