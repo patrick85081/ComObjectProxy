@@ -11,10 +11,7 @@ namespace ComObjectProxy.Core
         {
             if (targetMethod.Name == nameof(IEnumerable.GetEnumerator) && typeof(T).IsInterface)
             {
-                Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} Begin");
-                var result = proxyImpl.GetProxyEnumerable<T>(base.instance).GetEnumerator();
-                Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} End: {targetMethod.ReturnType.FullName}");
-                return result;
+                return proxyImpl.GetProxyEnumerable<T>(base.instance).GetEnumerator();
             }
 
             return base.Invoke(targetMethod, args);
@@ -53,17 +50,12 @@ namespace ComObjectProxy.Core
                 if (ComProxyFactory.ConverterMap.ContainsKey(targetMethod.ReturnType))
                 {
                     var element = ComProxyFactory.ConverterMap[targetMethod.ReturnType];
-                    var temp = ComProxyFactory.CreateCollection(result, targetMethod.ReturnType, element);
-                    Console.WriteLine(
-                        $"{typeof(T).Name} call {targetMethod.Name} End: {temp}/{targetMethod.GetType().Name}");
-                    return temp;
+                    return ComProxyFactory.CreateCollection(result, targetMethod.ReturnType, element);
                 }
-                var tt = ComProxyFactory.Create(result, targetMethod.ReturnType);
-                Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} End: {tt}/{targetMethod.GetType().Name}");
-                return tt;
+
+                return ComProxyFactory.Create(result, targetMethod.ReturnType);
             }
             
-            Console.WriteLine($"{typeof(T).Name} call {targetMethod.Name} End: {result}/{targetMethod.GetType().Name}");
             return result;
         }
     }

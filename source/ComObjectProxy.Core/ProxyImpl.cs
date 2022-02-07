@@ -29,9 +29,7 @@ public class ProxyImpl
     {
         foreach (var arg in instance)
         {
-            Console.WriteLine($"Enumerable {instance.GetType().Name} Element {typeof(T).Name} Begin");
             yield return (T)ComProxyFactory.Create(arg, typeof(T));
-            Console.WriteLine($"Enumerable {instance.GetType().Name} Element {typeof(T).Name} End");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using ComObjectProxy.Castle;
 using ComObjectProxy.Core;
 using ComObjectProxy.NetFx;
 using WUApiLib;
@@ -12,7 +13,8 @@ namespace NetFramework
         {
             Console.WriteLine("Hello, World!");
 
-            ComProxyFactory.SetComProxyFactory(new NetFxComProxyFactory());
+            // ComProxyFactory.SetComProxyFactory(new NetFxComProxyFactory());
+            ComProxyFactory.SetComProxyFactory(new CastleComProxyFactory());
             ComProxyFactory.RegisterCollectionConverter<UpdateCollection, IUpdate>();
             ComProxyFactory.RegisterCollectionConverter<ICategoryCollection, ICategory>();
             ComProxyFactory.RegisterCollectionConverter<IUpdateExceptionCollection, IUpdateException>();
